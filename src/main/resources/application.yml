@@ -1,0 +1,190 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: "bank-accounts"
+  profiles:
+    active: "default"
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:7080/realms/master/protocol/openid-connect/certs
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  sql:
+    init:
+      mode: always
+
+  config:
+    # Optional: application can be started even if config server is not there
+    import: "optional:configserver:http://localhost:8071/"
+#    import:
+#      - "application_qa"
+#      - "application_kafka"
+#    activate:
+#      on-profile: "default"
+
+  cloud:
+    kubernetes:
+      discovery:
+        all-namespaces: true
+    discovery:
+      client:
+        health-indicator:
+          enabled: false
+
+    # If Spring Cloud CircuitBreaker is on the classpath and spring.cloud.openfeign.circuitbreaker.enabled=true, Feign will wrap all methods with a circuit breaker.
+    openfeign:
+      circuitbreaker:
+        enabled: true
+    function:
+      definition: ackCommunication # Function name which consumes message. Multiple function can be added using semicolon
+    stream:
+      defaultBinder: rabbitMQ
+      bindings:
+        ackCommunication-in-0:
+          destination: ack-communication
+          group: ${spring.application.name}
+          binder: rabbitMQ
+        # Below code works: our function know by default to send the output of the function to the output exchange without adding any code.
+        sendCommunication-out-0: # This is triggered from create account
+          destination: send-communication # exchange name, as it is output binding. When output binding, then the destination is exchange name and when input binding then the destination is queue name
+          binder: kafka
+      binders:
+        rabbitMQ:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 5672
+                username: guest
+                password: guest
+                connection-timeout: 10s
+        kafka:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers:
+                        - localhost:9092
+      # Below code only if kafka binders is used in pom.xml
+#      kafka:
+#        binder:
+#          brokers:
+#            - localhost:9092
+
+  # Rabbit MQ for spring-cloud-bus. This is also the default
+  rabbitmq:
+#    host: "localhost"
+#    port: 5672
+#    username: "guest"
+#    password: "guest"
+#    connection-timeout: 10s
+
+
+#eureka:
+#  client:
+#    fetchRegistry: true # Please fetch content of Eureka server registery for communication purposes (Cache)
+#    registerWithEureka: true # Please register yourself with Eureka server
+#    serviceUrl:
+#      defaultZone: http://localhost:8070/eureka/
+#  instance:
+#    preferIpAddress: true # By default, bank-accounts service will register with registry using hostname. This will need DNS setup. Instead, we set it up using IPAddress. When other services tries to connect with accounts, eureka will share the IP address of accounts service
+
+# This information will be used by /actuator/info endpoint. This endpoint has to be activated in management.
+# Eureka server will use this info (endpoint) to add information to the registered microservice
+info:
+  app:
+    name: bank-accounts
+    descriptions: Bank accounts microservice
+    version: 1.0.0
+
+# Data related /actuator/shutdown. We will call this method to shut down the service and test the deregistration from Eureka. It should be activated under management
+endpoints:
+  shutdown:
+    enabled: true
+
+# Actuator endpoints management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" # to expose all actuator endpoints
+  # Gateway server docker config can use health endpoint to check if the service is healthy
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+  # Asks micrometer and prometheus to group all my microservice metrics under application.name
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+
+resilience4j.circuitbreaker:
+  configs:
+    default: # Config for all circuit breakers. For specific one change this to specific name i.e accounts-circuit-breaker
+      slidingWindowSize: 10 # How many requests it has to monitor before changing from closed to open state
+      permittedNumberOfCallsInHalfOpenState: 2 # Process and monitor two requests and then decide going to fully closed or back to open state
+      failureRateThreshold: 50 # 50%, if 50 percent failed, move from closed to open
+      waitDurationInOpenState: 10000 # Open state timeout after which it moves to half-open state
+
+#Here's how the backoff times would be calculated:
+#Attempt 1: Wait for 500 milliseconds.
+#Attempt 2: Wait for 500 * 2 milliseconds (exponential backoff).
+#Attempt 3: Wait for 500 * 2 * 2 milliseconds (exponential backoff).
+#  So, the backoff times would be 500 ms, 1000 ms, and 2000 ms for the first, second, and third retry attempts, respectively.
+resilience4j.retry:
+  configs:
+    default:
+      maxRetryAttempts: 3
+      waitDuration: 500
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      retryExceptions:
+        - java.util.concurrent.TimeoutException
+resilience4j.ratelimiter:
+  configs:
+    default:
+      timeoutDuration: 1000 # Time for the thread to wait
+      # Every 5 seconds, one request is served
+      limitRefreshPeriod: 5000 # For every 5 seconds renew the quota
+      limitForPeriod: 1 # Quota
+
+
+logging:
+  # Active debug logs in the give package
+  level:
+    com:
+      bank:
+        accounts: DEBUG
+  # Used by open telemetry %5p: log severity (info, error, debug). Trace-id and span-id generated by open telemetry will be inserted here.
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
