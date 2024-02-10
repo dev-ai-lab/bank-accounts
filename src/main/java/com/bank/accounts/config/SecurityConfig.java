@@ -1,8 +1,6 @@
 package com.bank.accounts.config;
 
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
+//@Configuration
 //@EnableWebSecurity
 public class SecurityConfig {
 

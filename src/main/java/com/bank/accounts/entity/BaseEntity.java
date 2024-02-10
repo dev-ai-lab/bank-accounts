@@ -14,6 +14,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+/**
+ * As part of auditing, these fields will be automatically populated, i.e with the username of the currently authenticated user
+ */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @ToString

@@ -1,17 +1,16 @@
 package com.bank.accounts.service.impl;
 
 import com.bank.accounts.constants.AccountsConstants;
-import com.bank.accounts.dto.AccountsDto;
+import com.bank.accounts.dto.AccountDto;
 import com.bank.accounts.dto.AccountsMessageDto;
-import com.bank.accounts.dto.AccountsMsgDto;
 import com.bank.accounts.dto.CustomerDto;
-import com.bank.accounts.entity.Accounts;
+import com.bank.accounts.entity.Account;
 import com.bank.accounts.entity.Customer;
 import com.bank.accounts.exception.CustomerAlreadyExistsException;
 import com.bank.accounts.exception.ResourceNotFoundException;
 import com.bank.accounts.mapper.AccountsMapper;
 import com.bank.accounts.mapper.CustomerMapper;
-import com.bank.accounts.repository.AccountsRepository;
+import com.bank.accounts.repository.AccountRepository;
 import com.bank.accounts.repository.CustomerRepository;
 import com.bank.accounts.service.IAccountsService;
 import lombok.AllArgsConstructor;
@@ -29,7 +28,7 @@ public class AccountsServiceImpl  implements IAccountsService {
 
     private static final Logger log = LoggerFactory.getLogger(AccountsServiceImpl.class);
 
-    private AccountsRepository accountsRepository;
+    private AccountRepository accountRepository;
     private CustomerRepository customerRepository;
     private final StreamBridge streamBridge;
 
@@ -45,11 +44,11 @@ public class AccountsServiceImpl  implements IAccountsService {
                     +customerDto.getMobileNumber());
         }
         Customer savedCustomer = customerRepository.save(customer);
-        Accounts savedAccount = accountsRepository.save(createNewAccount(savedCustomer));
+        Account savedAccount = accountRepository.save(createNewAccount(savedCustomer));
         sendCommunication(savedAccount, savedCustomer);
     }
 
-    private void sendCommunication(Accounts account, Customer customer) {
+    private void sendCommunication(Account account, Customer customer) {
         var accountsMsgDto = new AccountsMessageDto(account.getAccountNumber(), customer.getName(),
                 customer.getEmail(), customer.getMobileNumber());
         log.info("Sending Communication request for the details: {}", accountsMsgDto);
@@ -61,8 +60,8 @@ public class AccountsServiceImpl  implements IAccountsService {
      * @param customer - Customer Object
      * @return the new account details
      */
-    private Accounts createNewAccount(Customer customer) {
-        Accounts newAccount = new Accounts();
+    private Account createNewAccount(Customer customer) {
+        Account newAccount = new Account();
         newAccount.setCustomerId(customer.getCustomerId());
         long randomAccNumber = 1000000000L + new Random().nextInt(900000000);
 
@@ -81,11 +80,11 @@ public class AccountsServiceImpl  implements IAccountsService {
         Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
                 () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
         );
-        Accounts accounts = accountsRepository.findByCustomerId(customer.getCustomerId()).orElseThrow(
+        Account account = accountRepository.findByCustomerId(customer.getCustomerId()).orElseThrow(
                 () -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString())
         );
         CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
-        customerDto.setAccountsDto(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto()));
+        customerDto.setAccountDto(AccountsMapper.mapToAccountsDto(account, new AccountDto()));
         return customerDto;
     }
 
@@ -96,15 +95,15 @@ public class AccountsServiceImpl  implements IAccountsService {
     @Override
     public boolean updateAccount(CustomerDto customerDto) {
         boolean isUpdated = false;
-        AccountsDto accountsDto = customerDto.getAccountsDto();
-        if(accountsDto !=null ){
-            Accounts accounts = accountsRepository.findById(accountsDto.getAccountNumber()).orElseThrow(
-                    () -> new ResourceNotFoundException("Account", "AccountNumber", accountsDto.getAccountNumber().toString())
+        AccountDto accountDto = customerDto.getAccountDto();
+        if(accountDto !=null ){
+            Account account = accountRepository.findById(accountDto.getAccountNumber()).orElseThrow(
+                    () -> new ResourceNotFoundException("Account", "AccountNumber", accountDto.getAccountNumber().toString())
             );
-            AccountsMapper.mapToAccounts(accountsDto, accounts);
-            accounts = accountsRepository.save(accounts);
+            AccountsMapper.mapToAccounts(accountDto, account);
+            account = accountRepository.save(account);
 
-            Long customerId = accounts.getCustomerId();
+            Long customerId = account.getCustomerId();
             Customer customer = customerRepository.findById(customerId).orElseThrow(
                     () -> new ResourceNotFoundException("Customer", "CustomerID", customerId.toString())
             );
@@ -124,7 +123,7 @@ public class AccountsServiceImpl  implements IAccountsService {
         Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
                 () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
         );
-        accountsRepository.deleteByCustomerId(customer.getCustomerId());
+        accountRepository.deleteByCustomerId(customer.getCustomerId());
         customerRepository.deleteById(customer.getCustomerId());
         return true;
     }
@@ -137,11 +136,11 @@ public class AccountsServiceImpl  implements IAccountsService {
     public boolean updateCommunicationStatus(Long accountNumber) {
         boolean isUpdated = false;
         if(accountNumber !=null ){
-            Accounts accounts = accountsRepository.findById(accountNumber).orElseThrow(
+            Account account = accountRepository.findById(accountNumber).orElseThrow(
                     () -> new ResourceNotFoundException("Account", "AccountNumber", accountNumber.toString())
             );
-            accounts.setCommunicationAck(true);
-            accountsRepository.save(accounts);
+            account.setCommunicationAck(true);
+            accountRepository.save(account);
             isUpdated = true;
         }
         return  isUpdated;

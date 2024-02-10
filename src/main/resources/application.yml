@@ -179,6 +179,14 @@ resilience4j.ratelimiter:
       limitForPeriod: 1 # Quota
 
 
+camunda.bpm:
+  admin-user:
+    id: demo
+    password: demo123
+    firstName: Demo
+  filter:
+    create: All tasks
+
 logging:
   # Active debug logs in the give package
   level:

@@ -13,7 +13,7 @@
 	<artifactId>bank-accounts</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>bank-accounts</name>
+	<name>bank-account</name>
 	<description>Microservice for Bank Accounts</description>
 	<properties>
 		<java.version>21</java.version>
@@ -21,12 +21,30 @@
 		<jib-maven-plugin.version>3.4.0</jib-maven-plugin.version>
 		<otelVersion>1.32.0</otelVersion>
 		<mysql-connector.version>8.2.0</mysql-connector.version>
+		<camunda.spring-boot.version>7.20.0</camunda.spring-boot.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+
+
+		<!-- START: Camunda Config -->
+		<!-- core Camunda BPM Spring Boot Starter. Integrates camunda with Spring boot, providing camunda Engine... -->
+		<dependency>
+			<groupId>org.camunda.bpm.springboot</groupId>
+			<artifactId>camunda-bpm-spring-boot-starter</artifactId>
+			<version>${camunda.spring-boot.version}</version>
+		</dependency>
+
+		<!-- Camunda web applications (Cockpit, Tasklist, etc.) -->
+		<dependency>
+			<groupId>org.camunda.bpm.springboot</groupId>
+			<artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
+			<version>${camunda.spring-boot.version}</version>
+		</dependency>
+		<!-- END: Camunda Config -->
 
 		<!-- START: Distributed tracing using open telemetry -->
 		<dependency>
@@ -71,7 +89,7 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
-		<!-- Connects bank-accounts to rabbitmq -->
+		<!-- Connects bank-account to rabbitmq -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-bus-amqp</artifactId>
@@ -234,7 +252,7 @@
 						<image>openjdk:21-jdk-slim</image>
 					</from>
 					<to>
-						<image>dockerxya/bank-accounts:latest</image>
+						<image>dockerxya/bank-account:latest</image>
 					</to>
 				</configuration>
 			</plugin>

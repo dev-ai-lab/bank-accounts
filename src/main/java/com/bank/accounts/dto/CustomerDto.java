@@ -37,5 +37,5 @@ public class CustomerDto {
     @Schema(
             description = "Account details of the Customer"
     )
-    private AccountsDto accountsDto;
+    private AccountDto accountDto;
 }

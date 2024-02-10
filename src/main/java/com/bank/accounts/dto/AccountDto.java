@@ -10,7 +10,7 @@ import lombok.Data;
         name = "Accounts",
         description = "Schema to hold Account information"
 )
-public class AccountsDto {
+public class AccountDto {
 
     @NotEmpty(message = "AccountNumber can not be a null or empty")
     @Pattern(regexp="(^$|[0-9]{10})",message = "AccountNumber must be 10 digits")
