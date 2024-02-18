@@ -1,6 +1,7 @@
 package com.bank.accounts;
 
 import com.bank.accounts.dto.AccountsContactInfoDto;
+import com.bank.accounts.entity.Account;
 import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
@@ -51,6 +52,11 @@ public class AccountApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AccountApplication.class, args);
+		Account a = new Account();
+		a.setAccountNumber(123L);
+		a.setAccountType("credit");
+		System.out.println(a);
+
 	}
 
 

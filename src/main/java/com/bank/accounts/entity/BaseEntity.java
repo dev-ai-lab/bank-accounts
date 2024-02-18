@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@Getter @Setter @ToString
+@Getter @Setter
 public class BaseEntity {
 
     @CreatedDate
