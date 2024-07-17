@@ -18,6 +18,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableProcessApplication // It triggers the deployment of BPMN processes packaged within your Spring Boot application. Deploy programmatically!!
@@ -48,6 +49,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 				url = "https://www.devailab.com/swagger-ui.html"
 		)
 )
+@EnableScheduling
 public class AccountApplication {
 
 	public static void main(String[] args) {

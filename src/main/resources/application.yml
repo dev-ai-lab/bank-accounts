@@ -1,6 +1,10 @@
 server:
   port: 8080
 
+scheduler:
+  interval: 30000 # Interval in milliseconds (30 seconds)
+
+
 spring:
   application:
     name: "bank-accounts"

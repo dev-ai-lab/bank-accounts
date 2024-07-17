@@ -1,5 +1,7 @@
 package com.bank.accounts.web.api.v1;
 
+import com.bank.accounts.ScheduledTask;
+import com.bank.accounts.SchedulerRunner;
 import com.bank.accounts.constants.AccountsConstants;
 import com.bank.accounts.dto.AccountsContactInfoDto;
 import com.bank.accounts.dto.CustomerDto;
@@ -51,8 +53,13 @@ public class AccountsController {
 
     private final IAccountsService iAccountsService;
 
-    public AccountsController(IAccountsService iAccountsService) {
+    private final ScheduledTask scheduledTask;
+    private final SchedulerRunner schedulerRunner;
+
+    public AccountsController(IAccountsService iAccountsService, ScheduledTask scheduledTask, SchedulerRunner schedulerRunner) {
         this.iAccountsService = iAccountsService;
+        this.scheduledTask = scheduledTask;
+        this.schedulerRunner = schedulerRunner;
     }
 
     @Value("${build.version:1}")
@@ -287,5 +294,19 @@ public class AccountsController {
                 .body(accountsContactInfoDto);
     }
 
+
+
+
+    @PostMapping("/interval")
+    public String updateInterval(@RequestParam int newInterval) {
+        scheduledTask.setInterval(newInterval);
+        //scheduledTask.runTask();
+        return "Scheduler interval updated to: " + newInterval + " milliseconds";
+    }
+
+    @GetMapping("/interval")
+    public int getInterval() {
+        return 0;//schedulerConfig.getInterval();
+    }
 
 }

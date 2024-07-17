@@ -1,5 +1,7 @@
 package com.bank.accounts.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -12,6 +14,7 @@ import lombok.Data;
         name = "Customer",
         description = "Schema to hold Customer and Account information"
 )
+@JsonIgnoreProperties(ignoreUnknown = true) // be resilient
 public class CustomerDto {
 
     @Schema(
@@ -32,6 +35,7 @@ public class CustomerDto {
             description = "Mobile Number of the customer", example = "9345432123"
     )
     @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number must be 10 digits")
+    @JsonProperty("mobileNumber")
     private String mobileNumber;
 
     @Schema(
